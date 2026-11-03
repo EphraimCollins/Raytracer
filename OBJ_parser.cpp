@@ -2,16 +2,12 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <array>
 #include "file_util.h"
 #include "Vector3.hpp"
 #include "Triangle.hpp"
 
 using namespace std;
-
-// struct Triangle{
-//     public:
-//     Vector3 one, two, three;
-// };
 
 //main function, probably contain args for the parser, should it be a function instead???
 int main ()
@@ -28,6 +24,7 @@ int main ()
     vector<Vector3> vnorm_vec = {};
     //vector<Vector3> v_vn_vec = {}; 
     //vector<pair<float, float>> vtext_vec = {};
+    //vector<array<float, 2>> vtext_vec = {};
     vector<Vector3> vtext_vec = {};
     vector<Triangle> constructed_vec = {};
 
@@ -67,17 +64,13 @@ int main ()
 
         } else if(lineType == "vt") 
         {
-            //saves float, float pair in the vtext_vec buffer..
-            // vtext_vec.push_back(make_pair(stof(fileLineTokens.at(1)), 
-            //                     stof(fileLineTokens.at(2))));
+            //constructs temp array to add to the 
+            //array<float, 2> tempArr = {stof(fileLineTokens.at(1)), stof(fileLineTokens.at(2))};
+            Vector3 temp_vec = {stof(fileLineTokens.at(1)), 
+                            stof(fileLineTokens.at(2)), 0.0f};
 
-            //
-            Vector3 vtexture = {stof(fileLineTokens.at(1)), 
-                                stof(fileLineTokens.at(2)),
-                                0.0};
-
-            //
-            vtext_vec.push_back(vtexture); 
+            //adds tempArr to vtext_vec vector.
+            vtext_vec.push_back(temp_vec); 
 
 
         } else if(lineType == "f") 
@@ -110,7 +103,7 @@ int main ()
                 int idxOffset = 0;
 
                 //should there be 3 triangles???
-                ////grabs v/vn/vt lines from vertex_vec based of faceIdx, and respective vector.
+                //grabs v/vn/vt lines from vertex_vec based of faceIdx, and respective vector.
                 // Triangle temp_tri = Triangle{Vector3{vertex_vec.at(faceIdx[0 + idxOffset])},
                 //                              Vector3{vertex_vec.at(faceIdx[1 + IdxOffset])}, 
                 //                              Vector3{vertex_vec.at(faceIdx[2 + idxOffset])}};
@@ -128,7 +121,10 @@ int main ()
                 //tuple<Vector3, Vector3, Vector3> t1({faceVal[0], faceVal[1], faceVal[2]}, 
                 //                                    {faceVal[3], faceVal[4], faceVal[5]}, 
                 //                                    {faceVal[6], faceVal[7], faceVal[8]});
+
+                //
                 idxOffset += 3;
+
                 //saves tuple into constructed_vec vector.
                 constructed_vec.push_back(temp_tri);
             }
@@ -138,12 +134,5 @@ int main ()
             //is a junk value, break? go to next value???
             break;
         }
-            //parse through the v/vt/vn and add them to one of three arrays.
-            //then parse through the faces, split into face values then split again
-            //into individual faces ie. f 1/1/1 2/1/1 -> 1/1/1 + 2/1/1.
-            //subtract one minus first spot in face substring to get proper index.
-        
     } 
-
-    //loops through face_vec and constucts corners(???).
 }
