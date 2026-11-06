@@ -31,6 +31,7 @@ int main ()
     vector<Vector3> vnorm_vec = {};
     vector<Vector3> vtext_vec = {};
     vector<Triangle> triangle_vec = {};
+    int faceIdx[9] = {};
 
     //parsing through the fileLines vector contents, using split to get the parts of the line.
     for(int i = 0; i < fileLines.size(); i++)
@@ -39,6 +40,7 @@ int main ()
         string fileLine = fileLines.at(i);
 
         //print testing.
+        cout << "##########" << endl;
         cout << "One whole line: " << fileLine << endl;
 
         //calls split, which returns all the tokens from a line in a vector.
@@ -49,15 +51,15 @@ int main ()
         cout << "Tokens: ";
         for (string t: fileLineTokens)
         {
-            cout << t << ",";
+            cout << t << " ";
         }
-        cout << "end" << endl;
+        cout << endl;
         
         //ignores non f/v/vt/vn lines. 
         string lineType = fileLineTokens.at(0); //.c_str();
 
         //print test.
-        cout << "line type: " << lineType << "." << endl;
+        cout << "line type: " << lineType << endl;
 
         //ignores 'junk' values, saves valid lines to their respective vector buffers.
         if(lineType == "v") 
@@ -72,6 +74,9 @@ int main ()
             
             //saves vertex to vertex_vec vector. 
             vertex_vec.push_back(vertex);
+
+            //for cleaner output.
+            cout << "##########" << endl;
             
         } else if(lineType == "vn") 
         {
@@ -86,6 +91,9 @@ int main ()
             //saves normal to vnorm_vec buffer.
             vnorm_vec.push_back(normal);
 
+            //for cleaner output.
+            cout << "##########" << endl;
+
         } else if(lineType == "vt") 
         {
             //constructs vector3.
@@ -99,27 +107,53 @@ int main ()
             //adds tempArr to vtext_vec vector.
             vtext_vec.push_back(texture); 
 
+            //for cleaner output.
+            cout << "##########" << endl;
+
         } else if(lineType == "f") 
         {
-            //array holding all converted index values for one face.
-            int faceIdx[9];
+            //offset for saving indices.
+            int offset = 0;
 
             // -> v/vt/vn
             //"f x/x/x x/x/x x/x/x" -> "x/x/x" "x/x/x" "x/x/x"
             //fileLineTokens should have length 4, adjust parameters to get right indexing.
             for (int x = 1; x <= fileLineTokens.size() - 1; x++) 
             {
+                //offset.
+                //int offset = 0;
+
                 //splits flt one of the face "x/x/x" values.
                 vector<string> faceTokens = split(fileLineTokens.at(x), '/');
+
+                //print testing.
+                cout << "Face tokens: ";
+                for (string ft: faceTokens) 
+                {
+                    cout << ft << " ";
+                }
+                cout << endl;
 
                 //faceTokens = "x/x/x", grab all three x's and convert to integers.
                 //minus one the values to get them zero indexed.
                 for (int y = 0; y < faceTokens.size(); y++)
                 {
                     //minus one to get zero indexed index.
-                    faceIdx[y] = stoi(faceTokens.at(y)) - 1; 
+                    faceIdx[y + offset] = stoi(faceTokens.at(y)) - 1; 
                 }   
+
+                //offset.
+                offset += 3;
+                cout << offset << endl;
             }
+
+            //print testing.
+            cout << "Array indices: ";
+            for (int i: faceIdx)
+            {
+                cout << i << " "; 
+            }
+            cout << endl;
 
             //could add size check, 1="x/", 2="x//x" or "x/x", 3="x/x/x"
             //x//x returns a x, " " and x. so check size and check idx 1.
@@ -137,14 +171,25 @@ int main ()
                 //increment the offset.
                 idxOffset += 3;
 
-                //saves vertex into constructed_vec vector.
+                //print testing.
+                cout << "Triangle: " << temp_tri.one << temp_tri.two << temp_tri.three << endl;
+
+                //saves triangle into triangle_vec vector.
                 triangle_vec.push_back(temp_tri);
+
+                //for cleaner output.
+                cout << "##########" << endl;
             }
 
         } else 
         {
             //is a junk value, break? go to next value???
-            cout << "Ignored line: " <<  << endl;
+            cout << "Ignored line: " << lineType << endl;
+
+            //for cleaner output.
+            cout << "##########" << endl;
+
+            //contine to next iteration in loop.
             continue;
         }
     } 
