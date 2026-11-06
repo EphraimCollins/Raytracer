@@ -9,11 +9,6 @@
 
 using namespace std;
 
-// inline std::ostream &operator<<(std::ostream &os, const Vector3 &v)
-// {
-//     return os << '(' << v.x << ", " << v.y << ", " << v.z << ')';
-// }
-
 //main function, probably contain args for the parser, should it be a function instead???
 int main ()
 {   
@@ -120,9 +115,6 @@ int main ()
             //fileLineTokens should have length 4, adjust parameters to get right indexing.
             for (int x = 1; x <= fileLineTokens.size() - 1; x++) 
             {
-                //offset.
-                //int offset = 0;
-
                 //splits flt one of the face "x/x/x" values.
                 vector<string> faceTokens = split(fileLineTokens.at(x), '/');
 
@@ -155,31 +147,38 @@ int main ()
             }
             cout << endl;
 
+            //index offset.
+            int idxOffset = 0;
+
             //could add size check, 1="x/", 2="x//x" or "x/x", 3="x/x/x"
             //x//x returns a x, " " and x. so check size and check idx 1.
             //should run three times and create three triangles. 
             for (int z = 0; z < size(faceIdx) / 3; z++) 
             {
-                //index offset.
-                int idxOffset = 0;
-
                 //grabs v/vn/vt lines from vertex_vec based of faceIdx, and respective vector.
+                // Triangle temp_tri = Triangle{Vector3{vertex_vec.at(faceIdx[0 + idxOffset])},
+                //                              Vector3{vnorm_vec.at(faceIdx[1 + idxOffset])}, 
+                //                              Vector3{vtext_vec.at(faceIdx[2 + idxOffset])}};
+
                 Triangle temp_tri = Triangle{Vector3{vertex_vec.at(faceIdx[0 + idxOffset])},
-                                             Vector3{vnorm_vec.at(faceIdx[1 + idxOffset])}, 
-                                             Vector3{vtext_vec.at(faceIdx[2 + idxOffset])}};
+                                             Vector3{vertex_vec.at(faceIdx[1 + idxOffset])}, 
+                                             Vector3{vertex_vec.at(faceIdx[2 + idxOffset])}};
 
                 //increment the offset.
                 idxOffset += 3;
 
                 //print testing.
-                cout << "Triangle: " << temp_tri.one << temp_tri.two << temp_tri.three << endl;
+                cout << "Triangle: " << temp_tri.one << ", "
+                << temp_tri.two << ", "
+                << temp_tri.three << endl;
 
                 //saves triangle into triangle_vec vector.
                 triangle_vec.push_back(temp_tri);
 
-                //for cleaner output.
-                cout << "##########" << endl;
             }
+
+            //for cleaner output.
+            cout << "##########" << endl;
 
         } else 
         {
@@ -193,17 +192,4 @@ int main ()
             continue;
         }
     } 
-
-    cout << "does this even run?" << endl;
-    cout << triangle_vec.at(0).one << endl;
-
-    //print function for testing.
-    //vector -> triangle -> three vectors w/ operator<<() function.
-    for (const Triangle &triTemp: triangle_vec) 
-    {
-        //this should print the three vertexs that make up a triangle.
-        cout << triTemp.one << endl;
-        cout << triTemp.two << endl;
-        cout << triTemp.three << endl;
-    }
 }
