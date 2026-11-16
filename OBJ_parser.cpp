@@ -6,14 +6,16 @@
 #include "file_util.h"
 #include "Vector3.hpp"
 #include "Triangle.hpp"
+//#include "OBJ_parser.hpp"
 
 using namespace std;
 
 //main function, probably contain args for the parser, should it be a function instead???
-int main ()
+//If I turn it into a function, make it return a vector of triangles lmao.
+vector<Triangle> object_parser(const string& file_name)
 {   
     //string of filename to parse. replace this later. or have it be user input?
-    string file_name = "test_obj.obj";
+    //string file_name = "test_obj.obj";
 
     //Vector that contains all the lines of the .obj file.
     vector<string> fileLines = readLines(file_name);
@@ -22,9 +24,14 @@ int main ()
     cout << "There are " << fileLines.size() << " elements in the vector." << endl;
 
     //4 vectors, 3 vectors of vector3's, final vector of triangles.
-    vector<Vector3> vertex_vec = {};
-    vector<Vector3> vnorm_vec = {};
-    vector<Vector3> vtext_vec = {};
+    // vector<Vector3> vertex_vec = {};
+    // vector<Vector3> vnorm_vec = {};
+    // vector<Vector3> vtext_vec = {};
+
+    //contains all the vertexs and normals.
+    vector<Vector3> raw_vec = {};
+
+    //will contain constructed triangles to be returned.
     vector<Triangle> triangle_vec = {};
     int faceIdx[9] = {};
 
@@ -68,7 +75,8 @@ int main ()
             cout << "Vertex:" << vertex << endl;
             
             //saves vertex to vertex_vec vector. 
-            vertex_vec.push_back(vertex);
+            //vertex_vec.push_back(vertex);
+            raw_vec.push_back(vertex);
 
             //for cleaner output.
             cout << "##########" << endl;
@@ -84,26 +92,31 @@ int main ()
             cout << "Normal:" << normal << endl;
 
             //saves normal to vnorm_vec buffer.
-            vnorm_vec.push_back(normal);
+            //vnorm_vec.push_back(normal);
+            raw_vec.push_back(normal);
 
             //for cleaner output.
             cout << "##########" << endl;
+
+            // //ignore the vt u, v texture coords for now lmao
+            // continue;
 
         } else if(lineType == "vt") 
         {
-            //constructs vector3.
-            Vector3 texture = {stof(fileLineTokens.at(1)), 
-                                stof(fileLineTokens.at(2)), 
-                                0.0f};
+            // //constructs vector3.
+            // Vector3 texture = {stof(fileLineTokens.at(1)), 
+            //                     stof(fileLineTokens.at(2)), 
+            //                     0.0f};
 
-            //print testing.
-            cout << "texture:" << texture << endl;
+            // //print testing.
+            // cout << "texture:" << texture << endl;
 
-            //adds tempArr to vtext_vec vector.
-            vtext_vec.push_back(texture); 
+            // //adds tempArr to vtext_vec vector.
+            // vtext_vec.push_back(texture); 
 
-            //for cleaner output.
-            cout << "##########" << endl;
+            // //for cleaner output.
+            // cout << "##########" << endl;
+            continue;
 
         } else if(lineType == "f") 
         {
@@ -155,14 +168,10 @@ int main ()
             //should run three times and create three triangles. 
             for (int z = 0; z < size(faceIdx) / 3; z++) 
             {
-                //grabs v/vn/vt lines from vertex_vec based of faceIdx, and respective vector.
-                // Triangle temp_tri = Triangle{Vector3{vertex_vec.at(faceIdx[0 + idxOffset])},
-                //                              Vector3{vnorm_vec.at(faceIdx[1 + idxOffset])}, 
-                //                              Vector3{vtext_vec.at(faceIdx[2 + idxOffset])}};
-
-                Triangle temp_tri = Triangle{Vector3{vertex_vec.at(faceIdx[0 + idxOffset])},
-                                             Vector3{vertex_vec.at(faceIdx[1 + idxOffset])}, 
-                                             Vector3{vertex_vec.at(faceIdx[2 + idxOffset])}};
+                //grabs v/vn/ lines from vertex_vec based of faceIdx, and respective vector.
+                Triangle temp_tri = Triangle{Vector3{raw_vec.at(faceIdx[0 + idxOffset])},
+                                             Vector3{raw_vec.at(faceIdx[1 + idxOffset])}, 
+                                             Vector3{raw_vec.at(faceIdx[2 + idxOffset])}};
 
                 //increment the offset.
                 idxOffset += 3;
@@ -192,4 +201,5 @@ int main ()
             continue;
         }
     } 
+    return triangle_vec;
 }

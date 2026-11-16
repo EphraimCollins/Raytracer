@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <array>
 #include "file_util.h"
 #include "Vector3.hpp"
 #include "Triangle.hpp"
