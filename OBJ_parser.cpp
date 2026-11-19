@@ -6,9 +6,16 @@
 #include "file_util.h"
 #include "Vector3.hpp"
 #include "Triangle.hpp"
-//#include "OBJ_parser.hpp"
 
 using namespace std;
+
+std::ostream &operator<<(std::ostream &os, const Triangle &v)
+{
+    return os << "Vertex one: (" << v.one.x << ", " << v.one.y << ", " << v.one.z << ')'
+    << "\nVertex two: (" << v.two.x << ", " << v.two.y << ", " << v.two.z << ')'
+    << "\nVertex three: (" << v.three.x << ", " << v.three.y << ", " << v.three.z << ')';
+
+}
 
 //main function, probably contain args for the parser, should it be a function instead???
 //If I turn it into a function, make it return a vector of triangles lmao.
@@ -21,12 +28,14 @@ vector<Triangle> object_parser(const string& file_name)
     vector<string> fileLines = readLines(file_name);
 
     //print testing.
-    cout << "There are " << fileLines.size() << " elements in the vector." << endl;
+    // cout << "There are " << fileLines.size() << " elements in the vector." << endl;
 
     //4 vectors, 3 vectors of vector3's, final vector of triangles.
     // vector<Vector3> vertex_vec = {};
     // vector<Vector3> vnorm_vec = {};
-    // vector<Vector3> vtext_vec = {};
+
+    //contains the texture values.
+    //vector<Vector3> vtext_vec = {};
 
     //contains all the vertexs and normals.
     vector<Vector3> raw_vec = {};
@@ -42,26 +51,25 @@ vector<Triangle> object_parser(const string& file_name)
         string fileLine = fileLines.at(i);
 
         //print testing.
-        cout << "##########" << endl;
-        cout << "One whole line: " << fileLine << endl;
+        // cout << "##########" << "One whole line: " << fileLine << endl;
 
         //calls split, which returns all the tokens from a line in a vector.
         char delim = ' ';
         vector<string> fileLineTokens = split(fileLine, delim);
 
         //print testing.
-        cout << "Tokens: ";
-        for (string t: fileLineTokens)
-        {
-            cout << t << " ";
-        }
-        cout << endl;
+        // cout << "Tokens: ";
+        // for (string t: fileLineTokens)
+        // {
+        //     cout << t << " ";
+        // }
+        // cout << endl;
         
         //ignores non f/v/vt/vn lines. 
-        string lineType = fileLineTokens.at(0); //.c_str();
+        string lineType = fileLineTokens.at(0); 
 
         //print test.
-        cout << "line type: " << lineType << endl;
+        // cout << "line type: " << lineType << endl;
 
         //ignores 'junk' values, saves valid lines to their respective vector buffers.
         if(lineType == "v") 
@@ -72,51 +80,50 @@ vector<Triangle> object_parser(const string& file_name)
                               stof(fileLineTokens.at(3))};
 
             //print testing.
-            cout << "Vertex:" << vertex << endl;
+            // cout << "Vertex:" << vertex << endl;
             
             //saves vertex to vertex_vec vector. 
             //vertex_vec.push_back(vertex);
             raw_vec.push_back(vertex);
 
             //for cleaner output.
-            cout << "##########" << endl;
+            // cout << "##########" << endl;
             
         } else if(lineType == "vn") 
         {
-            //save normal info in vector 3 
+            //save normal info in vector3 
             Vector3 normal = {stof(fileLineTokens.at(1)), 
                               stof(fileLineTokens.at(2)), 
                               stof(fileLineTokens.at(3))};
 
             //print testing.
-            cout << "Normal:" << normal << endl;
+            // cout << "Normal:" << normal << endl;
 
             //saves normal to vnorm_vec buffer.
             //vnorm_vec.push_back(normal);
             raw_vec.push_back(normal);
 
             //for cleaner output.
-            cout << "##########" << endl;
+            // cout << "##########" << endl;
 
             // //ignore the vt u, v texture coords for now lmao
             // continue;
 
         } else if(lineType == "vt") 
         {
-            // //constructs vector3.
-            // Vector3 texture = {stof(fileLineTokens.at(1)), 
-            //                     stof(fileLineTokens.at(2)), 
-            //                     0.0f};
+            //constructs vector3 of texture.
+            Vector3 texture = {stof(fileLineTokens.at(1)), 
+                                 stof(fileLineTokens.at(2)), 
+                                 0.0f};
 
             // //print testing.
-            // cout << "texture:" << texture << endl;
+            // // cout << "texture:" << texture << endl;
 
-            // //adds tempArr to vtext_vec vector.
-            // vtext_vec.push_back(texture); 
+            //adds vt to raw_vec vector.
+            raw_vec.push_back(texture); 
 
-            // //for cleaner output.
+            //for cleaner output.
             // cout << "##########" << endl;
-            continue;
 
         } else if(lineType == "f") 
         {
@@ -131,13 +138,13 @@ vector<Triangle> object_parser(const string& file_name)
                 //splits flt one of the face "x/x/x" values.
                 vector<string> faceTokens = split(fileLineTokens.at(x), '/');
 
-                //print testing.
-                cout << "Face tokens: ";
-                for (string ft: faceTokens) 
-                {
-                    cout << ft << " ";
-                }
-                cout << endl;
+                // //print testing.
+                // cout << "Face tokens: ";
+                // for (string ft: faceTokens) 
+                // {
+                //     cout << ft << " ";
+                // }
+                // cout << endl;
 
                 //faceTokens = "x/x/x", grab all three x's and convert to integers.
                 //minus one the values to get them zero indexed.
@@ -149,16 +156,16 @@ vector<Triangle> object_parser(const string& file_name)
 
                 //offset.
                 offset += 3;
-                cout << offset << endl;
+                //cout << offset << endl;
             }
 
-            //print testing.
-            cout << "Array indices: ";
-            for (int i: faceIdx)
-            {
-                cout << i << " "; 
-            }
-            cout << endl;
+            // //print testing.
+            // cout << "Array indices: ";
+            // for (int i: faceIdx)
+            // {
+            //     cout << i << " "; 
+            // }
+            // cout << endl;
 
             //index offset.
             int idxOffset = 0;
@@ -176,10 +183,11 @@ vector<Triangle> object_parser(const string& file_name)
                 //increment the offset.
                 idxOffset += 3;
 
-                //print testing.
-                cout << "Triangle: " << temp_tri.one << ", "
-                << temp_tri.two << ", "
-                << temp_tri.three << endl;
+                // //print testing.
+                // cout << "Triangle: " << temp_tri.one << ", "
+                // << temp_tri.two << ", "
+                // << temp_tri.three << endl;
+                // cout << temp_tri
 
                 //saves triangle into triangle_vec vector.
                 triangle_vec.push_back(temp_tri);
@@ -187,19 +195,21 @@ vector<Triangle> object_parser(const string& file_name)
             }
 
             //for cleaner output.
-            cout << "##########" << endl;
+            // cout << "##########" << endl;
 
         } else 
         {
             //is a junk value, break? go to next value???
-            cout << "Ignored line: " << lineType << endl;
+            // cout << "Ignored line: " << lineType << endl;
 
             //for cleaner output.
-            cout << "##########" << endl;
+            // cout << "##########" << endl;
 
             //contine to next iteration in loop.
             continue;
         }
     } 
+
+    // cout << "## does this get reached? ##" << endl;
     return triangle_vec;
 }

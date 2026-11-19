@@ -7,4 +7,6 @@
 
 std::vector<Triangle> object_parser(const std::string& file_name);
 
+std::ostream &operator<<(std::ostream &os, const Triangle &v);
+
 #endif 

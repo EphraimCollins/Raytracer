@@ -11,11 +11,6 @@
 
 using namespace std;
 
-// /// Uncomment these lines if you happen to add a Vector3 and want to debug :)
-// inline std::ostream& operator<<(std::ostream& os, const Vector3& v) {
-//   return os << '(' << v.x << ", " << v.y << ", " << v.z << ')';
-// }
-
 /// Width of the final image
 const int w = 640;
 
@@ -25,23 +20,23 @@ const int h = 640;
 /// The 1d array for storing the pixel we have generated
 unsigned char pixels[w * h * 3];
 
-// Left Wall
+// //Left Wall
 // Triangle triangle01 = Triangle{Vector3{-1, 1, -2}, Vector3{-1, 1, -1}, Vector3{-1, -1, -2}};
 // Triangle triangle02 = Triangle{Vector3{-1, 1, -1}, Vector3{-1, -1, -1}, Vector3{-1, -1, -2}};
 
-// Right Wall
+// //Right Wall
 // Triangle triangle03 = Triangle{Vector3{1, 1, -1}, Vector3{1, 1, -2}, Vector3{1, -1, -2}};
 // Triangle triangle04 = Triangle{Vector3{1, -1, -1}, Vector3{1, 1, -1}, Vector3{1, -1, -2}};
 
-// Top Wall
+// //Top Wall
 // Triangle triangle05 = Triangle{Vector3{-1, 1, -1}, Vector3{-1, 1, -2}, Vector3{1, 1, -2}};
 // Triangle triangle06 = Triangle{Vector3{1, 1, -1}, Vector3{-1, 1, -1}, Vector3{1, 1, -2}};
 
-// Bottom Wall
+// //Bottom Wall
 // Triangle triangle07 = Triangle{Vector3{-1, -1, -2}, Vector3{-1, -1, -1}, Vector3{1, -1, -2}};
 // Triangle triangle08 = Triangle{Vector3{-1, -1, -1}, Vector3{1, -1, -1}, Vector3{1, -1, -2}};
 
-// Back Wall
+// //Back Wall
 // Triangle triangle09 = Triangle{Vector3{-1, 1, -2}, Vector3{-1, -1, -2}, Vector3{1, -1, -2}};
 // Triangle triangle10 = Triangle{Vector3{1, 1, -2}, Vector3{-1, 1, -2}, Vector3{1, -1, -2}};
 
@@ -52,9 +47,11 @@ unsigned char pixels[w * h * 3];
 //     triangle07, triangle08,
 //     triangle09, triangle10}; 
 
-string filename = "cube_test"; //cin???
+string filename = "OBJ\\monkey.obj"; //cin???
 
-vector<Triangle> triangles = object_parser("OBJ\\" + filename + ".obj"); 
+vector<Triangle> triangles = object_parser(filename); 
+
+//what to do with the texture (u, v) mapping??? 
 
 //put background color here
 Vector3 background_color = Vector3{255, 255, 255};
@@ -63,7 +60,7 @@ float trace_ray_distance(Vector3 origin, Vector3 direction)
 {
   float closest_t = INFINITY;
 
-  for (const Triangle &triangle : triangles)
+  for (const Triangle &triangle: triangles)
   {
 
     //Find where we hit the plane
@@ -102,6 +99,7 @@ float trace_ray_distance(Vector3 origin, Vector3 direction)
     if (diff > .00001 || isnan(sum))
     {
       //I'm not in the triangle, continue?
+      continue;
     }
     else
     {
@@ -116,14 +114,16 @@ float trace_ray_distance(Vector3 origin, Vector3 direction)
 Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2000)
 {
   Vector3 color = Vector3{background_color.x, background_color.y, background_color.z};
-
-  if(bounces <= 0) {return background_color;}
+  //std::cout << "inside trace ray after color is set." << endl;
+  if(bounces <= 0) 
+  {
+    return background_color;
+  }
 
   float closest_t = 1000000;
-
+  //std::cout << "in trace_ray before for loop." << endl;
   for (const Triangle &triangle : triangles)
   {
-
     //Find where we hit the plane
     Vector3 edge_one = triangle.one - triangle.two;
     Vector3 edge_two = triangle.three - triangle.two;
@@ -133,7 +133,10 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2000)
 
     float t = -(abc.dot(origin) + d) / abc.dot(direction);
 
-    if (t > closest_t || t <= 0) {continue;}
+    if (t > closest_t || t <= 0) 
+    {
+      continue;
+    }
 
     Vector3 collision_point = direction * t + origin;
 
@@ -158,6 +161,7 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2000)
     if (diff > .00001 || isnan(sum))
     {
       // I'm not in the triangle, continue?
+      continue;
     }
     else
     {
@@ -171,7 +175,7 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2000)
       Vector3 normal = p.normalize();
 
       float strength = max(0.f, light_direction.dot(normal));
-      // float strength = abs(light_direction.dot(normal));
+      //float strength = abs(light_direction.dot(normal));
 
       Vector3 diffuse = base_color * strength;
       if(trace_ray_distance(collision_point, light_direction) != INFINITY)
@@ -184,8 +188,9 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2000)
       if(true)
       {
         Vector3 reflective_direction = direction - normal * 2 * normal.dot(direction);
+        //convert recursion to iterative? 
         reflective = trace_ray(collision_point, reflective_direction, bounces - 1) * .5;
-        diffuse *=.5;
+        diffuse *= .5;
         ambient *= .5;
       }
 
@@ -198,23 +203,38 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2000)
   return color;
 }
 
+//intial multi-threading?
+//1-> split work inside main into a # of threads?
+////split input into n sub-tiles??? 680 x 680 -> 10 68 x 68 tiles
+////would have to convert from inter-tile index to intra-tile main index for pixel assignment.
+//amd simd??? would need to re-write how vector3 functions work?
+//would need to re-write with structure of arrays (arrays of x, y, z)
 
 int main()
 {
-  /// Example of how to debug with couts. 
-  /// You must uncomment the include and namespace lines above
-  //cout << "Hello, world" << endl;
+  //cout << "start of main!" << endl;
+
+  //testing for triangles.
+  // for (const Triangle &triangle: triangles) 
+  // {
+  //   cout << triangle;
+  // }
 
   Vector3 camera_origin = Vector3{0, 0, 1};
   Vector3 camera_look_at = Vector3{0, 0, 0};
   Vector3 camera_up = Vector3{0, 1, 0};
 
+  //std::cout << "this is before looping starts" << endl;
+
   /// Loop over each line doing down
-  for (int y = 0; y < h; y++)
+  for (int y = 0; y < h; ++y)
   {
     /// While going down, loop over every pixel going right
-    for (int x = 0; x < w; x++)
+    for (int x = 0; x < w; ++x)
     {
+
+      cout << "how times the program runs." << endl;
+
       /// Figure out our index in the 1d array of pixels
       int index = y * w * 3 + x * 3;
 
@@ -227,14 +247,19 @@ int main()
       /// The value of the blue channel (0-255)
       unsigned char b = background_color.z;
 
-      //How raytrace?
+      //cout << "this is before ray is computed" << endl;
 
+      //How raytrace?
       Vector3 target = Vector3{x/(float)w*2-1, -(y/(float)h*2-1), 0};
       Vector3 temp = (target - camera_origin);
       Vector3 ray = temp.normalize();
 
-      //
+      //cout << "this is before ray is traced to figure out color." << endl;
+
+      //color for pixel. 
       Vector3 color = trace_ray(camera_origin, ray);
+
+      //cout << "this is after ray has been traced." << endl;
 
       r = color.x;
       g = color.y;
