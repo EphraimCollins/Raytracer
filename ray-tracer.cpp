@@ -18,6 +18,8 @@ const int w = 640;
 const int h = 640;
 
 /// The 1d array for storing the pixel we have generated
+//set every area as default to background color to move singular computation 
+//every time down below in the main loop???
 unsigned char pixels[w * h * 3];
 
 // //Left Wall
@@ -47,9 +49,14 @@ unsigned char pixels[w * h * 3];
 //     triangle07, triangle08,
 //     triangle09, triangle10}; 
 
-string filename = "OBJ\\monkey.obj"; //cin???
+string filename = "OBJ\\cone.obj"; //cin???
 
 vector<Triangle> triangles = object_parser(filename); 
+//vector or tuple of three arrays? which one is more preformant???
+//x = [A.x B.x ... N.x] 
+//y = [A.y B.y ... N.y]
+//z = [A.z B.z ... N.z]
+//are memory accesses slower or faster then struct member accessing???
 
 //what to do with the texture (u, v) mapping??? 
 
@@ -110,8 +117,9 @@ float trace_ray_distance(Vector3 origin, Vector3 direction)
   return closest_t;
 }
 
+//bounces had b = 2000, but program would not even run.
 //
-Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2000)
+Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2)
 {
   Vector3 color = Vector3{background_color.x, background_color.y, background_color.z};
   //std::cout << "inside trace ray after color is set." << endl;
@@ -209,6 +217,7 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2000)
 ////would have to convert from inter-tile index to intra-tile main index for pixel assignment.
 //amd simd??? would need to re-write how vector3 functions work?
 //would need to re-write with structure of arrays (arrays of x, y, z)
+//each thread n could get a nth of the total work, would to break up array/work. 
 
 int main()
 {
@@ -221,19 +230,24 @@ int main()
   // }
 
   Vector3 camera_origin = Vector3{0, 0, 1};
-  Vector3 camera_look_at = Vector3{0, 0, 0};
-  Vector3 camera_up = Vector3{0, 1, 0};
+  //Vector3 camera_look_at = Vector3{0, 0, 0};
+  //Vector3 camera_up = Vector3{0, 1, 0};
 
   //std::cout << "this is before looping starts" << endl;
 
-  /// Loop over each line doing down
+  //pragma 
+  //Loop over each line doing down *change this*
+  //#pragma omp parallel 
+  //{
+  
+  #pragma omp parallel for collapse(2)
   for (int y = 0; y < h; ++y)
   {
     /// While going down, loop over every pixel going right
     for (int x = 0; x < w; ++x)
     {
 
-      cout << "how times the program runs." << endl;
+      //cout << "how times the program runs." << endl;
 
       /// Figure out our index in the 1d array of pixels
       int index = y * w * 3 + x * 3;
@@ -271,6 +285,7 @@ int main()
       pixels[index + 2] = b;
     }
   }
+  //}
 
   ///Write the final image as a png.
   stbi_write_png("ray_tacer_image.png", w, h, 3, pixels, w * 3);

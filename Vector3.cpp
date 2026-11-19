@@ -1,6 +1,6 @@
 #include "Vector3.hpp"
 
-Vector3 &Vector3::operator+=(const Vector3 &rhs)
+ Vector3 &Vector3::operator+=(const Vector3 &rhs)
 {
     x += rhs.x;
     y += rhs.y;
@@ -8,7 +8,7 @@ Vector3 &Vector3::operator+=(const Vector3 &rhs)
     return *this;
 }
 
-Vector3 &Vector3::operator-=(const Vector3 &rhs)
+ Vector3 &Vector3::operator-=(const Vector3 &rhs)
 {
     x -= rhs.x;
     y -= rhs.y;
@@ -16,7 +16,7 @@ Vector3 &Vector3::operator-=(const Vector3 &rhs)
     return *this;
 }
 
-Vector3 &Vector3::operator*=(const float rhs)
+ Vector3 &Vector3::operator*=(const float rhs)
 {
     x *= rhs;
     y *= rhs;
@@ -24,12 +24,12 @@ Vector3 &Vector3::operator*=(const float rhs)
     return *this;
 }
 
-float Vector3::dot(const Vector3 &rhs)
+ float Vector3::dot(const Vector3 &rhs)
 {
     return x * rhs.x + y * rhs.y + z * rhs.z;
 }
 
-Vector3 Vector3::cross(const Vector3 &rhs)
+ Vector3 Vector3::cross(const Vector3 &rhs)
 {
     return Vector3{
         y * rhs.z - z * rhs.y,
@@ -37,12 +37,13 @@ Vector3 Vector3::cross(const Vector3 &rhs)
         x * rhs.y - y * rhs.x};
 }
 
-float Vector3::length()
+ float Vector3::length()
 {
     return sqrt(x * x + y * y + z * z);
+    //mult n * n at the same time then add twice??
 }
 
-Vector3 Vector3::normalize()
+ Vector3 Vector3::normalize()
 {
     float l = length();
     if (l == 0)
@@ -50,17 +51,17 @@ Vector3 Vector3::normalize()
     return Vector3{x / l, y / l, z / l};
 }
 
-Vector3 operator+(Vector3 lhs, const Vector3 &rhs)
+ Vector3 operator+(Vector3 lhs, const Vector3 &rhs)
 {
     return lhs += rhs;
 }
 
-Vector3 operator-(Vector3 lhs, const Vector3 &rhs)
+ Vector3 operator-(Vector3 lhs, const Vector3 &rhs)
 {
     return lhs -= rhs;
 }
 
-Vector3 operator*(Vector3 lhs, const float rhs)
+ Vector3 operator*(Vector3 lhs, const float rhs)
 {
     return lhs *= rhs;
 }
