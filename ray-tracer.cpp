@@ -8,6 +8,7 @@
 #include "Vector3.hpp"
 #include "Triangle.hpp"
 #include "OBJ_parser.hpp"
+#include "omp.h"
 
 using namespace std;
 
@@ -21,6 +22,9 @@ const int h = 640;
 //set every area as default to background color to move singular computation 
 //every time down below in the main loop???
 unsigned char pixels[w * h * 3];
+
+//for timing.
+double start_time, end_time = 0; 
 
 // //Left Wall
 // Triangle triangle01 = Triangle{Vector3{-1, 1, -2}, Vector3{-1, 1, -1}, Vector3{-1, -1, -2}};
@@ -63,6 +67,7 @@ vector<Triangle> triangles = object_parser(filename);
 //put background color here
 Vector3 background_color = Vector3{255, 255, 255};
 
+#pragma omp declare simd 
 float trace_ray_distance(Vector3 origin, Vector3 direction)
 {
   float closest_t = INFINITY;
@@ -118,7 +123,7 @@ float trace_ray_distance(Vector3 origin, Vector3 direction)
 }
 
 //bounces had b = 2000, but program would not even run.
-//
+#pragma omp declare simd 
 Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2)
 {
   Vector3 color = Vector3{background_color.x, background_color.y, background_color.z};
@@ -221,6 +226,7 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2)
 
 int main()
 {
+  start_time = omp_get_wtime();
   //cout << "start of main!" << endl;
 
   //testing for triangles.
@@ -235,15 +241,13 @@ int main()
 
   //std::cout << "this is before looping starts" << endl;
 
-  //pragma 
-  //Loop over each line doing down *change this*
-  //#pragma omp parallel 
-  //{
   
-  #pragma omp parallel for collapse(2)
-  for (int y = 0; y < h; ++y)
+  //OpenMP enabled, sped up program execution by ~50%.
+  #pragma omp parallel for simd collapse(2) 
+  for (int y = 0; y < h; y++)
   {
-    /// While going down, loop over every pixel going right
+    //While going down, loop over every pixel going right
+    //#pragma omp simd
     for (int x = 0; x < w; ++x)
     {
 
@@ -289,5 +293,7 @@ int main()
 
   ///Write the final image as a png.
   stbi_write_png("ray_tacer_image.png", w, h, 3, pixels, w * 3);
+  end_time = omp_get_wtime();
+  cout << "Time elapsed: " << end_time - start_time;
   return 0;
 }
