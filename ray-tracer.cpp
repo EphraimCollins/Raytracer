@@ -5,6 +5,10 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <ctime>
+#include <filesystem>
+#include <charconv>
+#include <time.h>
 #include "Vector3.hpp"
 #include "Triangle.hpp"
 #include "OBJ_parser.hpp"
@@ -53,9 +57,9 @@ double start_time, end_time = 0;
 //     triangle07, triangle08,
 //     triangle09, triangle10}; 
 
-string filename = "OBJ\\cone.obj"; //cin???
+string shapeName = "torus"; //cin???
 
-vector<Triangle> triangles = object_parser(filename); 
+vector<Triangle> triangles = object_parser("OBJ\\" + shapeName + ".obj"); 
 //vector or tuple of three arrays? which one is more preformant???
 //x = [A.x B.x ... N.x] 
 //y = [A.y B.y ... N.y]
@@ -124,7 +128,7 @@ float trace_ray_distance(Vector3 origin, Vector3 direction)
 
 //bounces had b = 2000, but program would not even run.
 #pragma omp declare simd 
-Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2)
+Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 3)
 {
   Vector3 color = Vector3{background_color.x, background_color.y, background_color.z};
   //std::cout << "inside trace ray after color is set." << endl;
@@ -216,6 +220,28 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2)
   return color;
 }
 
+vector<std::string> fast_to_str(vector<float> vals) 
+{
+  vector<std::string> str_array = {};
+
+  //should convert all float values.
+  for(const float &v: vals) 
+  {
+    char buf[20];
+    auto [ptr, ec] = to_chars(buf, buf + 20, v);
+
+    //make std::string
+    std::string converted(buf, ptr);
+    str_array.push_back(converted);
+
+    //manually clear/zero out buffer.
+    std::fill(std::begin(buf), std::end(buf), 0);
+  }
+
+  //returns vector of all four vectors. 
+  return str_array;
+}
+
 //intial multi-threading?
 //1-> split work inside main into a # of threads?
 ////split input into n sub-tiles??? 680 x 680 -> 10 68 x 68 tiles
@@ -226,6 +252,15 @@ Vector3 trace_ray(Vector3 origin, Vector3 direction, int bounces = 2)
 
 int main()
 {
+  //sub-folder name.
+  filesystem::path subf = "ImageOutput";
+
+  //
+  if(!filesystem::exists(subf)) {
+    filesystem::create_directories(subf);
+  }
+
+
   start_time = omp_get_wtime();
   //cout << "start of main!" << endl;
 
@@ -235,7 +270,7 @@ int main()
   //   cout << triangle;
   // }
 
-  Vector3 camera_origin = Vector3{0, 0, 1};
+  Vector3 cam_origin = Vector3{0, 0, 10};
   //Vector3 camera_look_at = Vector3{0, 0, 0};
   //Vector3 camera_up = Vector3{0, 1, 0};
 
@@ -269,13 +304,13 @@ int main()
 
       //How raytrace?
       Vector3 target = Vector3{x/(float)w*2-1, -(y/(float)h*2-1), 0};
-      Vector3 temp = (target - camera_origin);
+      Vector3 temp = (target - cam_origin);
       Vector3 ray = temp.normalize();
 
       //cout << "this is before ray is traced to figure out color." << endl;
 
       //color for pixel. 
-      Vector3 color = trace_ray(camera_origin, ray);
+      Vector3 color = trace_ray(cam_origin, ray);
 
       //cout << "this is after ray has been traced." << endl;
 
@@ -289,11 +324,52 @@ int main()
       pixels[index + 2] = b;
     }
   }
-  //}
-
-  ///Write the final image as a png.
-  stbi_write_png("ray_tacer_image.png", w, h, 3, pixels, w * 3);
+  
+  //preformance time.
   end_time = omp_get_wtime();
-  cout << "Time elapsed: " << end_time - start_time;
+  float spd = end_time - start_time; 
+  cout << "Time elapsed: " << spd << endl;
+
+  //timestamp for image.
+  // std::time_t now = std::time(nullptr);
+  // const tm* t = std::ctime(&now); 
+  // char buf [90];
+  // strftime(buf, 90, "%a-%b-%d-%r-%G", t);
+  // string time_stamp(buf);
+
+  //why are there so many time libraries??????
+  // time_t rawtime;
+  // struct tm * tminfo;
+  // char buf[120];
+  // time(&rawtime);
+  // tminfo = localtime(&rawtime);
+  // strftime(buf, 120, "%a-%b-%d-%r-%G", tminfo);
+  // string t_stamp(buf);
+
+  //...
+  std::time_t now = std::time(nullptr);
+  std::tm* localTime = std::localtime(&now); 
+  char buf[100];
+  strftime(buf, sizeof(buf), "%a%b%d%r%G", localTime);
+  string date(buf);
+  // cout << to_string(spd) + "," + to_string(cam_origin.x) + "," + to_string(cam_origin.y) 
+  // + "," + to_string(cam_origin.z) << endl;
+  //for conversion function 
+  vector<float> in = {spd, cam_origin.x, cam_origin.y, cam_origin.z}; 
+
+  //function call
+  vector<string> out = fast_to_str(in);
+
+  //timestamp_preformance_x_y_z_shapeName.png
+  filesystem::path name = date + out.at(0) + "_" + out.at(1) + "_" + out.at(2) + "_" 
+  + out.at(3) + "_" + shapeName + ".png";
+  filesystem::path fullpath = subf / name;
+
+  //Write the final image as a png.
+  int result = stbi_write_png(fullpath.string().c_str(), w, h, 3, pixels, w * 3);
+
+
+  cout << "Did the image write?: " << result << endl;
+  cout << "timestamp: " + date << endl;
   return 0;
 }
